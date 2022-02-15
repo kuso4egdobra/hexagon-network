@@ -5,8 +5,8 @@ from HexagonProtocol import HexagonProtocol
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-host = '0.0.0.0'
-port = 1322
+host = ''
+port = 8007
 s.bind((host, port))
 s.listen(4)
 socket_list = [s]
@@ -31,17 +31,21 @@ class NetSession:
     
     def SendToAll(self, data: dict) -> None:
         byte_str = HexagonProtocol.getByteStrFromData(data)
+        print(len(byte_str))
         for player in self.players:
             self.players[player].send(byte_str)
             
     def SendToOne(self, data:dict, player_id: int) -> None:
         byte_str = HexagonProtocol.getByteStrFromData(data)
+        print(len(byte_str))
         self.players[player_id].send(byte_str)
     
     def SendExceptOne(self, data:dict, player_id: int) -> None:
         byte_str = HexagonProtocol.getByteStrFromData(data)
+        print(len(byte_str))
         for player in self.players:
             if player != player_id:
+                #print(player)
                 self.players[player].send(byte_str)
     
     def __del__(self):
@@ -72,7 +76,7 @@ class NetSessionControl:
             #protocol = HexagonProtocol({"type": "connect", "session": len(self.sessions) - 1, "player": player_id})
             #byte_str = protocol.getByteProtocol()
             session = self.sessions[session_id]
-            session.SendToExceptOne(message, sender_id)
+            session.SendExceptOne(message, sender_id)
             if message['type'] == 'win':
                 del self.sessions[session_id]
                 self.sessions[session_id]
@@ -81,6 +85,7 @@ class NetSessionControl:
 
 def sigint_handler(signum, frame):
     global socket_list
+    print(socket_list)
     for sock in socket_list:
         sock.close()
     del socket_list
@@ -89,7 +94,7 @@ def sigint_handler(signum, frame):
 
 sessions = []
 
-session_control = NetSessionControl(1)
+session_control = NetSessionControl(2)
 
 signal.signal(signal.SIGINT, sigint_handler)
 while 1:
